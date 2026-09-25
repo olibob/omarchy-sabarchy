@@ -7,6 +7,7 @@ All notable changes to SABarchy are documented here.
 ### Added
 
 - **SABnzbd port** setting (1024–65535, `0` = from `sabnzbd.ini`) for Docker and other port-mapped installs, with a README guide for containerized SABnzbd.
+- **Completed downloads folder on host (Docker only)** setting: maps the container paths SABnzbd reports onto the host volume so **Open folder** works with Dockerized SABnzbd.
 
 ### Changed
 

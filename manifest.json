@@ -20,6 +20,7 @@
       "refreshSeconds": 3,
       "configPath": "",
       "port": 0,
+      "downloadsPath": "",
       "notifyOnCompletion": true,
       "notifyOnFailure": true,
       "notifySound": false,
@@ -47,6 +48,12 @@
         "min": 0,
         "max": 65535,
         "defaultValue": 0
+      },
+      {
+        "key": "downloadsPath",
+        "type": "string",
+        "label": "Completed downloads folder on host (Docker only)",
+        "description": "Host side of the volume mounted on SABnzbd's completed folder, so Open folder finds downloads."
       },
       {
         "key": "notifyOnCompletion",

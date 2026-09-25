@@ -544,6 +544,54 @@ class HelperTests(unittest.TestCase):
         self.assertTrue(recent)
         self.assertTrue(all(item["storage"].startswith("/") for item in recent if not item["failed"]))
 
+    def write_config(self, complete_dir):
+        self.config.write_text(
+            "__version__ = 19\n[misc]\n"
+            f"port = {self.server.server_port}\napi_key = test-key\nenable_https = 0\ncomplete_dir = {complete_dir}\n",
+            encoding="utf-8",
+        )
+
+    def recent_by_id(self, *args):
+        result = self.run_snapshot(*args)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        return {item["id"]: item for item in json.loads(result.stdout)["stages"]["recent"]}
+
+    def test_downloads_path_maps_container_storage_to_host(self):
+        host = Path(self.tempdir.name) / "host-complete"
+        ApiHandler.recent_history = {
+            "slots": [
+                {"nzo_id": "mapped", "name": "Mapped", "status": "Completed",
+                 "storage": "/config/Downloads/complete/movies/Job.1/movie.mp4"},
+                {"nzo_id": "sibling", "name": "Sibling", "status": "Completed",
+                 "storage": "/config/Downloads/complete2/Job.2"},
+                {"nzo_id": "elsewhere", "name": "Elsewhere", "status": "Completed", "storage": "/srv/other/Job.3"},
+            ]
+        }
+
+        for complete_dir in ("Downloads/complete", "/config/Downloads/complete/"):
+            with self.subTest(complete_dir=complete_dir):
+                self.write_config(complete_dir)
+
+                recent = self.recent_by_id("--downloads-path", str(host) + "/")
+
+                self.assertEqual(recent["mapped"]["storage"], str(host / "movies" / "Job.1" / "movie.mp4"))
+                self.assertEqual(recent["sibling"]["storage"], "/config/Downloads/complete2/Job.2")
+                self.assertEqual(recent["elsewhere"]["storage"], "/srv/other/Job.3")
+
+    def test_storage_is_untouched_without_downloads_path(self):
+        self.write_config("Downloads/complete")
+        ApiHandler.recent_history = {
+            "slots": [{"nzo_id": "job", "name": "Job", "status": "Completed", "storage": "/config/Downloads/complete/Job"}]
+        }
+
+        self.assertEqual(self.recent_by_id()["job"]["storage"], "/config/Downloads/complete/Job")
+
+    def test_relative_downloads_path_is_a_configuration_error(self):
+        result = self.run_snapshot("--downloads-path", "data/downloads")
+
+        self.assertEqual(result.returncode, 4)
+        self.assertEqual(json.loads(result.stdout)["state"], "configuration-error")
+
 
 if __name__ == "__main__":
     unittest.main()

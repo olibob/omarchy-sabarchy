@@ -125,6 +125,18 @@ published on the host. SABarchy needs both the host path and the host port.
    `"ok":true` means the widget will connect; `"state":"offline"` usually means
    the port is wrong.
 
+5. For **Open folder**, tell SABarchy where completed downloads land on the host:
+   the host side of the volume mounted on SABnzbd's completed folder
+   (`/data/sabnzbd/downloads:/config/Downloads/complete` → `/data/sabnzbd/downloads`).
+
+   ```sh
+   omarchy bar set io.github.thecdrz.sabarchy downloadsPath '"/data/sabnzbd/downloads"' --json
+   ```
+
+   SABnzbd reports container paths (`/config/Downloads/complete/...`), which do
+   not exist on the host. SABarchy swaps SABnzbd's completed folder
+   (`complete_dir` in `sabnzbd.ini`) for this host folder.
+
 The config file must be readable by your user (set the container's `PUID`/`PGID`
 to your UID/GID). SABarchy still only contacts `127.0.0.1`; publish the port on
 the host's loopback or all interfaces. **SABnzbd port** accepts 1024–65535;

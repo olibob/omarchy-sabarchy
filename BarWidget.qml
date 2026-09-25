@@ -14,6 +14,7 @@ BarWidget {
   readonly property string helperPath: pluginDir + "bin/sabnzbd-pipeline-api"
   readonly property int refreshMs: Math.max(2, Number(setting("refreshSeconds", 3))) * 1000
   readonly property string configPath: String(setting("configPath", ""))
+  readonly property string downloadsPath: String(setting("downloadsPath", ""))
   readonly property int portOverride: Math.max(0, Math.floor(Number(setting("port", 0)) || 0))
   readonly property string demoState: String(setting("_demoState", ""))
   readonly property bool demoExpandFirst: Boolean(setting("_demoExpandFirst", false))
@@ -85,6 +86,7 @@ BarWidget {
     var command = [root.helperPath, action].concat(connectionArgs())
     if (action === "snapshot") {
       command.push("--queue-limit", String(root.queueLimit), "--history-limit", String(root.historyLimit), "--disk-threshold", String(root.diskThresholdGb))
+      if (root.downloadsPath !== "") command.push("--downloads-path", root.downloadsPath)
       if (root.demoState !== "") command.push("--demo", root.demoState)
     }
     return command
