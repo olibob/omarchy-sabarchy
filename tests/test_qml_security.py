@@ -28,6 +28,16 @@ class QmlSecurityTests(unittest.TestCase):
         self.assertIn("demoActionTimer.restart()", action)
         self.assertIn("actionTimeout.restart()", action)
 
+    def test_panel_close_hides_before_touching_bar(self):
+        # A throwing bar call before hide() leaves the full-screen overlay grabbing all input.
+        source = (ROOT / "Panel.qml").read_text(encoding="utf-8")
+        close = re.search(r"function close\(\) \{([^}]*)\}", source).group(1)
+        self.assertLess(close.index("controller.hide()"), close.index("setCenterHoverRevealSuppressed"))
+        start = source.index("function setCenterHoverRevealSuppressed(value)")
+        setter = source[start:source.index("function activeListHeight", start)]
+        self.assertIn("bar.setCenterHoverRevealSuppressed(value)", setter)
+        self.assertIn("try {", setter)
+
 
 if __name__ == "__main__":
     unittest.main()

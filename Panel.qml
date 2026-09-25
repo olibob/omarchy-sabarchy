@@ -148,15 +148,23 @@ Panel {
     controller.show()
     Qt.callLater(function() { if (opened) setCenterHoverRevealSuppressed(true) })
   }
-  function close() { setCenterHoverRevealSuppressed(false); controller.hide() }
+  // Hide before touching the bar: if the bar API throws, the full-screen overlay must still close.
+  function close() { controller.hide(); setCenterHoverRevealSuppressed(false) }
   function toggle() { if (opened) close(); else open() }
   function closeForPopoutSwitch() { close() }
   function switchPanel(direction) {
     if (bar && typeof bar.switchPanelFrom === "function") return bar.switchPanelFrom(barIdentity, direction)
     return false
   }
+  // Plugin bars (PluginBarApi) expose the flag read-only and require the setter.
   function setCenterHoverRevealSuppressed(value) {
-    if (bar && "centerHoverRevealSuppressed" in bar) bar.centerHoverRevealSuppressed = value
+    if (!bar) return
+    try {
+      if (typeof bar.setCenterHoverRevealSuppressed === "function") bar.setCenterHoverRevealSuppressed(value)
+      else if ("centerHoverRevealSuppressed" in bar) bar.centerHoverRevealSuppressed = value
+    } catch (error) {
+      console.warn("SABarchy: could not update bar hover reveal:", error)
+    }
   }
 
   function activeListHeight(jobCount) {

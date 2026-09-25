@@ -2,6 +2,12 @@
 
 All notable changes to SABarchy are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- The panel no longer locks mouse and keyboard input on Omarchy 4.0.4. Outside clicks and `Esc` failed to close it because the plugin bar API exposes `centerHoverRevealSuppressed` read-only; the panel now hides first and uses the bar's setter.
+
 ## [0.7.0] — 2026-08-24
 
 ### Added
