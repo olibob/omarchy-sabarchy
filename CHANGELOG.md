@@ -2,6 +2,12 @@
 
 All notable changes to SABarchy are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- **Open folder** and `f` open the folder containing a completed job when SABnzbd reports a single file, instead of opening the file in its default application.
+
 ## [0.7.0] — 2026-08-24
 
 ### Added

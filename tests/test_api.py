@@ -521,6 +521,29 @@ class HelperTests(unittest.TestCase):
         recent = json.loads(result.stdout)["stages"]["recent"]
         self.assertTrue(recent)
         self.assertTrue(all(item["storage"].startswith("/") for item in recent if not item["failed"]))
+        self.assertTrue(all(item["folder"] == item["storage"] for item in recent if not item["failed"]))
+
+    def test_open_folder_uses_the_folder_holding_a_single_file(self):
+        root = Path(self.tempdir.name)
+        (root / "Dir.Job").mkdir()
+        (root / "File.Job").mkdir()
+        (root / "File.Job" / "movie.mp4").write_bytes(b"")
+        ApiHandler.recent_history = {
+            "slots": [
+                {"nzo_id": "dir", "name": "Dir", "status": "Completed", "storage": str(root / "Dir.Job")},
+                {"nzo_id": "file", "name": "File", "status": "Completed", "storage": str(root / "File.Job" / "movie.mp4")},
+                {"nzo_id": "gone", "name": "Gone", "status": "Completed", "storage": str(root / "Gone.Job")},
+            ]
+        }
+
+        result = self.run_snapshot()
+
+        self.assertEqual(result.returncode, 0)
+        recent = {item["id"]: item for item in json.loads(result.stdout)["stages"]["recent"]}
+        self.assertEqual(recent["dir"]["folder"], str(root / "Dir.Job"))
+        self.assertEqual(recent["file"]["storage"], str(root / "File.Job" / "movie.mp4"))
+        self.assertEqual(recent["file"]["folder"], str(root / "File.Job"))
+        self.assertEqual(recent["gone"]["folder"], str(root / "Gone.Job"), "unknown paths keep upstream behavior")
 
 
 if __name__ == "__main__":

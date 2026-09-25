@@ -93,7 +93,8 @@ notifications** uses the freedesktop sound theme through PipeWire.
 
 **Low disk warning (GB)** defaults to 20 and accepts 0 to disable the warning
 entirely. **Open folder** actions launch `xdg-open` on the absolute local path
-SABnzbd reports for a completed job.
+SABnzbd reports for a completed job, or on the folder containing it when
+SABnzbd reports a single file.
 
 ## Security
 

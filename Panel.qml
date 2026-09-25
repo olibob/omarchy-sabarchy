@@ -285,7 +285,7 @@ Panel {
           }
         }
         else if (text === "P") { if (root.actionable && root.pipeline) root.pipeline.runAction(root.pipeline.paused ? "resume" : "pause") }
-        else if (text === "f" && root.focusSection === "history" && root.historyIndex >= 0 && root.historyIndex < root.filteredRecentJobs.length && root.pipeline) root.pipeline.openFolder(root.filteredRecentJobs[root.historyIndex].storage)
+        else if (text === "f" && root.focusSection === "history" && root.historyIndex >= 0 && root.historyIndex < root.filteredRecentJobs.length && root.pipeline) root.pipeline.openFolder(root.filteredRecentJobs[root.historyIndex].folder)
         else if ((text === "o" || text === "O") && root.pipelineData.web_url) Qt.openUrlExternally(String(root.pipelineData.web_url))
       }
 
@@ -574,7 +574,7 @@ Panel {
                       color: retryButton.failedItem ? Color.urgent : (retryButton.canOpen ? Color.accent : Qt.darker(root.contentForeground, 1.4))
                       font.family: root.contentFontFamily; font.pixelSize: Style.font.caption; font.bold: true
                     }
-                    MouseArea { id: retryMouse; anchors.fill: parent; enabled: retryButton.failedItem ? (root.actionable && root.pipeline && root.pipeline.actionFeedback !== "retrying") : retryButton.canOpen; hoverEnabled: true; cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor; onClicked: { if (retryButton.failedItem) { if (root.pipeline) root.pipeline.retryJob(recentCard.modelData.id) } else if (root.pipeline) root.pipeline.openFolder(recentCard.modelData.storage) } }
+                    MouseArea { id: retryMouse; anchors.fill: parent; enabled: retryButton.failedItem ? (root.actionable && root.pipeline && root.pipeline.actionFeedback !== "retrying") : retryButton.canOpen; hoverEnabled: true; cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor; onClicked: { if (retryButton.failedItem) { if (root.pipeline) root.pipeline.retryJob(recentCard.modelData.id) } else if (root.pipeline) root.pipeline.openFolder(recentCard.modelData.folder) } }
                   }
                 }
               }
