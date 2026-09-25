@@ -226,6 +226,28 @@ class HelperTests(unittest.TestCase):
         self.assertTrue(ApiHandler.queries)
         self.assertTrue(all(path == "/sabnzbd/api" for path, _query in ApiHandler.queries))
 
+    def test_port_override_replaces_ini_port(self):
+        # Docker installs report the container port in sabnzbd.ini, not the published host port.
+        self.config.write_text(
+            "__version__ = 19\n[misc]\nport = 1\napi_key = test-key\nenable_https = 0\n",
+            encoding="utf-8",
+        )
+
+        result = self.run_snapshot("--port", str(self.server.server_port))
+
+        self.assertEqual(result.returncode, 0)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["web_url"], f"http://127.0.0.1:{self.server.server_port}")
+
+    def test_out_of_range_port_override_is_a_configuration_error(self):
+        for port in ("80", "1023", "65536"):
+            with self.subTest(port=port):
+                result = self.run_snapshot("--port", port)
+
+                self.assertEqual(result.returncode, 4)
+                self.assertEqual(json.loads(result.stdout)["state"], "configuration-error")
+                self.assertFalse(ApiHandler.queries)
+
     def test_snapshot_treats_quoted_empty_url_base_as_absent(self):
         # SABnzbd writes empty strings as quoted "" in sabnzbd.ini.
         self.config.write_text(

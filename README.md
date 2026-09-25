@@ -38,6 +38,7 @@ compact theme-aware panel.
 - Opens the SABnzbd web interface directly
 - Reads the API key from the local SABnzbd configuration; credentials never
   appear in QML, shell configuration, or process arguments
+- Works with Dockerized SABnzbd via a config path and host port override
 - Local-only by design
 
 ## Requirements
@@ -58,7 +59,7 @@ omarchy plugin add https://github.com/thecdrz/omarchy-sabarchy.git --enable
 For local development:
 
 ```sh
-cp -a . ~/.config/omarchy/plugins/io.github.thecdrz.sabarchy
+rsync -a --exclude=.git ./ ~/.config/omarchy/plugins/io.github.thecdrz.sabarchy/
 omarchy-shell shell rescanPlugins
 omarchy plugin enable io.github.thecdrz.sabarchy
 ```
@@ -94,6 +95,40 @@ notifications** uses the freedesktop sound theme through PipeWire.
 **Low disk warning (GB)** defaults to 20 and accepts 0 to disable the warning
 entirely. **Open folder** actions launch `xdg-open` on the absolute local path
 SABnzbd reports for a completed job.
+
+### SABnzbd in Docker
+
+Container images (such as linuxserver/sabnzbd) keep `sabnzbd.ini` in a mounted
+volume and report the container's internal port (usually `8080`), not the port
+published on the host. SABarchy needs both the host path and the host port.
+
+1. Find the config file on the host: it is `sabnzbd.ini` inside the directory
+   mounted at `/config` (for `./config:/config`, next to your compose file).
+2. Find the host port: the left side of the port mapping (`18080:8080` → `18080`),
+   or run `docker port sabnzbd 8080`.
+3. Configure the widget (the plugin must be enabled first):
+
+   ```sh
+   omarchy plugin enable io.github.thecdrz.sabarchy
+   omarchy bar set io.github.thecdrz.sabarchy configPath '"/path/to/config/sabnzbd.ini"' --json
+   omarchy bar set io.github.thecdrz.sabarchy port 18080 --json
+   omarchy-restart-shell
+   ```
+
+4. Optionally check the connection without opening the panel:
+
+   ```sh
+   ~/.config/omarchy/plugins/io.github.thecdrz.sabarchy/bin/sabnzbd-pipeline-api \
+     snapshot --config /path/to/config/sabnzbd.ini --port 18080
+   ```
+
+   `"ok":true` means the widget will connect; `"state":"offline"` usually means
+   the port is wrong.
+
+The config file must be readable by your user (set the container's `PUID`/`PGID`
+to your UID/GID). SABarchy still only contacts `127.0.0.1`; publish the port on
+the host's loopback or all interfaces. **SABnzbd port** accepts 1024–65535;
+`0` uses the port from `sabnzbd.ini`.
 
 ## Security
 

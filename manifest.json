@@ -19,6 +19,7 @@
     "defaults": {
       "refreshSeconds": 3,
       "configPath": "",
+      "port": 0,
       "notifyOnCompletion": true,
       "notifyOnFailure": true,
       "notifySound": false,
@@ -37,6 +38,15 @@
         "key": "configPath",
         "type": "string",
         "label": "SABnzbd config path (blank for auto-detect)"
+      },
+      {
+        "key": "port",
+        "type": "integer",
+        "label": "SABnzbd port (0 = use config)",
+        "description": "Host port SABnzbd listens on (1024–65535), e.g. a Docker-published port. Always 127.0.0.1.",
+        "min": 0,
+        "max": 65535,
+        "defaultValue": 0
       },
       {
         "key": "notifyOnCompletion",

@@ -2,6 +2,16 @@
 
 All notable changes to SABarchy are documented here.
 
+## [Unreleased]
+
+### Added
+
+- **SABnzbd port** setting (1024–65535, `0` = from `sabnzbd.ini`) for Docker and other port-mapped installs, with a README guide for containerized SABnzbd.
+
+### Changed
+
+- Local development install uses `rsync --exclude=.git` so copying over a git-installed plugin no longer fails on read-only pack files.
+
 ## [0.7.0] — 2026-08-24
 
 ### Added

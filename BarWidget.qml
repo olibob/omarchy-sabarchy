@@ -14,6 +14,7 @@ BarWidget {
   readonly property string helperPath: pluginDir + "bin/sabnzbd-pipeline-api"
   readonly property int refreshMs: Math.max(2, Number(setting("refreshSeconds", 3))) * 1000
   readonly property string configPath: String(setting("configPath", ""))
+  readonly property int portOverride: Math.max(0, Math.floor(Number(setting("port", 0)) || 0))
   readonly property string demoState: String(setting("_demoState", ""))
   readonly property bool demoExpandFirst: Boolean(setting("_demoExpandFirst", false))
   readonly property bool demoExpandHistory: Boolean(setting("_demoExpandHistory", false))
@@ -73,9 +74,15 @@ BarWidget {
   readonly property bool popoutSwitchClosing: panelLoader.item ? panelLoader.item.popoutSwitchClosing === true : false
   readonly property real openPanelIndicatorWidth: speedContent.implicitWidth
 
+  function connectionArgs() {
+    var args = []
+    if (root.configPath !== "") args.push("--config", root.configPath)
+    if (root.portOverride > 0) args.push("--port", String(root.portOverride))
+    return args
+  }
+
   function helperCommand(action) {
-    var command = [root.helperPath, action]
-    if (root.configPath !== "") command.push("--config", root.configPath)
+    var command = [root.helperPath, action].concat(connectionArgs())
     if (action === "snapshot") {
       command.push("--queue-limit", String(root.queueLimit), "--history-limit", String(root.historyLimit), "--disk-threshold", String(root.diskThresholdGb))
       if (root.demoState !== "") command.push("--demo", root.demoState)
@@ -113,8 +120,7 @@ BarWidget {
       demoActionTimer.restart()
       return
     }
-    actionProc.command = [root.helperPath, "retry", "--id", actionJobId]
-    if (root.configPath !== "") actionProc.command.push("--config", root.configPath)
+    actionProc.command = [root.helperPath, "retry", "--id", actionJobId].concat(connectionArgs())
     actionTimeout.restart()
     actionProc.running = true
   }
@@ -130,8 +136,7 @@ BarWidget {
       demoActionTimer.restart()
       return
     }
-    actionProc.command = [root.helperPath, "clear_completed"]
-    if (root.configPath !== "") actionProc.command.push("--config", root.configPath)
+    actionProc.command = [root.helperPath, "clear_completed"].concat(connectionArgs())
     actionTimeout.restart()
     actionProc.running = true
   }
@@ -144,8 +149,7 @@ BarWidget {
       demoActionTimer.restart()
       return
     }
-    actionProc.command = [root.helperPath, action, "--id", actionJobId]
-    if (root.configPath !== "") actionProc.command.push("--config", root.configPath)
+    actionProc.command = [root.helperPath, action, "--id", actionJobId].concat(connectionArgs())
     actionTimeout.restart()
     actionProc.running = true
   }

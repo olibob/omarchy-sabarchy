@@ -89,7 +89,7 @@ def ini_text(value: str) -> str:
     return result
 
 
-def connection(path: Path) -> tuple[str, str]:
+def connection(path: Path, port_override: int = 0) -> tuple[str, str]:
     config = configparser.ConfigParser(interpolation=None)
     with path.open("rb") as config_file:
         raw_contents = config_file.read(MAX_CONFIG_BYTES + 1)
@@ -99,7 +99,10 @@ def connection(path: Path) -> tuple[str, str]:
     # SABnzbd keeps format metadata before its first INI section.
     config.read_string("[sabnzbd_metadata]\n" + contents)
     misc = config["misc"]
-    port = misc.getint("port", fallback=8080)
+    # A Docker port mapping can publish SABnzbd on a different host port than its INI reports.
+    if port_override and not 1024 <= port_override <= 65535:
+        raise ValueError("SABnzbd port override must be between 1024 and 65535")
+    port = port_override or misc.getint("port", fallback=8080)
     if not 1 <= port <= 65535:
         raise ValueError("SABnzbd port must be between 1 and 65535")
     scheme = "https" if misc.getboolean("enable_https", fallback=False) else "http"
@@ -416,6 +419,7 @@ def main() -> None:
     parser.add_argument("--config", default="")
     parser.add_argument("--demo", choices=("downloading", "clean", "processing", "multiple", "paused", "failed", "large", "not-configured", "offline"), default="")
     parser.add_argument("--id", default="")
+    parser.add_argument("--port", type=int, default=0)
     parser.add_argument("--queue-limit", type=int, default=100)
     parser.add_argument("--history-limit", type=int, default=50)
     parser.add_argument("--disk-threshold", type=float, default=DEFAULT_DISK_THRESHOLD_GB)
@@ -426,7 +430,7 @@ def main() -> None:
         if args.action == "snapshot" and args.demo:
             emit(demo_snapshot(args.demo, max(20, min(args.queue_limit, 1000)), max(20, min(args.history_limit, 1000)), threshold))
         config_path = find_config(args.config)
-        base_url, api_key = connection(config_path)
+        base_url, api_key = connection(config_path, args.port)
         if args.action == "snapshot":
             emit(snapshot(base_url, api_key, max(20, min(args.queue_limit, 1000)), max(20, min(args.history_limit, 1000)), threshold))
         if args.action == "auth":
